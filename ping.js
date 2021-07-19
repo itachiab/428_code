@@ -1,26 +1,19 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
+const Command = require("../../structures/Command.js");
 
-exports.run = async (client, message) => {
-  var m = await message.channel.send(`Ping Hesaplanıyor...`)
+class Ping extends Command {
+  constructor(...args) {
+    super(...args, {
+      name: "ping",
+      description: "Latency and API response times.",
+      usage: "ping",
+      aliases: ["pong"]
+    });
+  }
 
-    const pingozel = new Discord.RichEmbed()
-    .setColor('RANDOM')
-    .setAuthor(`⌛️Botun Pingi`, client.user.avatarURL)
-    .setDescription(`${client.ping}ms.`)
-    return m.edit(pingozel)
-};
+  async run(message, args, level) { // eslint-disable-line no-unused-vars
+    const msg = await message.channel.send(`**${message.member.displayName}-kun**...`);
+    msg.edit(`${this.client.responses.pingMessages.random().replaceAll("{{user}}", message.member.displayName).replaceAll("{{ms}}", `${msg.createdTimestamp - message.createdTimestamp}`)}`);
+  }
+}
 
-exports.conf = {
-  enabled: true,
-  guildOnly: false,
-  aliases: ['gecikme', 'gecikme-süresi'],
-  permLevel: `Yetki gerekmiyor.`
-};
-
-exports.help = {
-  name: 'ping',
-  category: "genel",
-  description: 'Botun gecikme süresini gösterir.',
-  usage: 'r?ping'
-};
+module.exports = Ping;

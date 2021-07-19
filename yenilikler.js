@@ -1,59 +1,26 @@
-const { Command } = require('discord.js-commando');
-const { RichEmbed } = require('discord.js');
-const { stripIndents } = require('common-tags');
+﻿const Discord = require('discord.js');
+const client = new Discord.Client();
+const ayarlar = require('../ayarlar.json');
 
-module.exports = class NewsCommand extends Command {
-	constructor(client) {
-		super(client, {
-			name: 'yenilikler',
-			aliases: [],
-			group: 'bilgi',
-			memberName: 'yenilikler',
-			description: 'Bot ile ilgili yeni özellikleri gösterir.',
-			guildOnly: false,
-			throttling: {
-				usages: 1,
-				duration: 10
-			}
-		});
-	}
+exports.run = (client, message) => {
+  if (message.channel.type !== 'dm') {
+    const botbilgi = new Discord.RichEmbed()
+    .setColor(0x00AE86)
+    .setTimestamp()
+    .setAuthor(message.author.username, message.author.avatarURL)
+    .setDescription('Yenilikler: \n**1** roller komutu eklendi! \n**2** d!kac-santim komutu eklendi! \n**3** d!rastgele-renk komutu eklendi! \n**4** d!nsfw komutu eklendi! \n**5** d!rol-ver komutu eklendi!');
+    message.channel.sendEmbed(botbilgi) }
+};
 
-	async run(msg) {
-		if (msg.guild) {
-			var embed = new RichEmbed()
-			.setTitle('Yenilikler')
-			.setDescription(stripIndents`
-			**Sürüm 1.0.1**
+exports.conf = {
+  enabled: true,
+  guildOnly: false,
+  aliases: [],
+  permLevel: 0
+};
 
-			+ Hoş geldin mesajları resimli yapıldı. _kullanmak için \`svo!hoş-geldin\`_
-			+ Triggered komutu eklendi.
-			+ Rip komutu eklendi.
-			+ Pixel komutu eklendi.
-			+ Minecraft komutlarındaki buglar düzeltildi.
-			+ Sitemiz **https://svobot.com** tekrardan online.
-
-			Komutları görmek için \`${msg.guild.commandPrefix}yardım\`
-			`)
-			.setColor('RED');
-			return msg.channel.send({embed});
-		}
-
-		var embed = new RichEmbed()
-		.setTitle('Yenilikler')
-		.setDescription(stripIndents`
-		**Sürüm 1.0.1**
-
-		+ Hoş geldin mesajları resimli yapıldı. _kullanmak için \`svo!hoş-geldin\`_
-		+ Triggered komutu eklendi.
-		+ Rip komutu eklendi.
-		+ Pixel komutu eklendi.
-		+ Minecraft komutlarındaki buglar düzeltildi.
-		+ Sitemiz **https://svobot.com** tekrardan online.
-
-		Komutları görmek için \`svo!yardım\`
-		`)
-		.setColor('RED');
-
-		return msg.channel.send({embed});
-	}
+exports.help = {
+  name: 'yenilikler',
+  description: 'Yenilikleri gösterir.',
+  usage: 'yenilikler'
 };

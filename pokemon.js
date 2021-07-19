@@ -1,54 +1,47 @@
-const Discord = require('discord.js')
-const Pokedex = require('pokedex-api')
-const pokedex = new Pokedex()
- 
-exports.run = async (client, message, args) => {
-        if (!args[0]) {
-                const embed = new Discord.RichEmbed()
-                        .setDescription(`Lütfen geçerli bir Pokemon ismi veya Pokemon ID numarası yazın.`)
-                        .setTimestamp()
-                        .setColor("RANDOM")
-                message.channel.send({embed})
-                return
-        }
-       
-        try {
-                const pokeponum = args.join(" ")
-                const pokemon = await pokedex.getPokemonByName(encodeURIComponent(pokeponum));
-                const pokepon = pokemon[0]
-                const embed = new Discord.RichEmbed()
-                        .setAuthor(`${pokepon.name} | Pokemon Bilgileri`, `https://i.imgur.com/5NO19vd.png`)
-                        .addField(`Pokédex Numarası`, pokepon.number)
-                        .addField(`Tür`, pokepon.species)
-                        .addField(`Tip`, pokepon.types.join(', '))
-                        .addField(`Normal Yetenekler`, pokepon.abilities.normal.join(', ') || 'Bulunmuyor/Bilinmiyor')
-                        .addField(`Gizli Yetenekler`, pokepon.abilities.hidden.join(', ') || 'Bulunmuyor/Bilinmiyor')
-                        .addField(`Yumurta Grubu`, pokepon.eggGroups.join(', '))
-                        .addField(`Cinsiyet`, pokepon.gender.length ? `Erkek: ${pokepon.gender[0]}% | Kadın: ${pokepon.gender[1]}%` : 'Bilinmiyor')
-                        .addField(`Boy`, pokepon.height)
-                        .addField(`Ağırlık`, pokepon.weight)
-                        .setThumbnail(pokepon.sprite)
-                        .setColor("RANDOM")
-                        .setTimestamp()
-                message.channel.send({embed})
-        } catch (err) {
-                const embed = new Discord.RichEmbed()
-                        .setDescription(`Lütfen geçerli bir Pokemon ismi veya Pokemon ID numarası yazın.`)
-                        .setColor("RANDOM")
-                        .setTimestamp()
-                message.channel.send({embed})
-        }
+const Command = require("../../structures/Command.js");
+const pokemon = require("../../assets/json/pokemon.json");
+const { MessageEmbed } = require("discord.js");
+
+class Pokemon extends Command {
+  constructor(...args) {
+    super(...args, {
+      name: "pokemon",
+      description: "Guess That Pokemon",
+      usage: "pokemon",
+      category: "Fun",
+      aliases: ["guessthatpokemon"]
+    });
+  }
+
+  async run(message, args, level) { // eslint-disable-line no-unused-vars
+    const rand = Math.floor(Math.random() * 802);
+    const poke = rand > 0 ? rand : Math.floor(Math.random() * 802);
+    const pokem = pokemon[poke];
+
+    const embed = new MessageEmbed()
+      .setTitle("You have 15 seconds to guess ! Who's that Pokémon !")
+      .setAuthor(message.member.displayName, message.author.displayAvatarURL())
+      .setImage(pokem.imageURL)
+      .setColor(6192321);
+    
+    const msg = await message.channel.send({ embed });
+    const filter = m => m.author.id === message.author.id;
+    const attempts = await msg.channel.awaitMessages(filter, { time: 15000, max: 1 });
+      
+    if (!attempts || !attempts.size) {
+      msg.delete();
+      return message.channel.send(`Ba-Baka! You took too long to answer. It was ${pokem.name}.`);
+    } 
+      
+    const answer = attempts.first().content.toLowerCase();  
+      
+    if (answer === pokem.name.toLowerCase()) {
+      await msg.edit({embed: null});
+      return msg.channel.send(`Yatta! Well done, ${pokem.name} was correct.`);
+    }
+    await msg.edit({embed: null});
+    return msg.channel.send(`Ba-Baka! You answered incorrectly, It was **${pokem.name}.**`);
+  } 
 }
- 
-exports.conf = {
-        enabled: true,
-        guildOnly: false,
-        aliases: ['pokedex'],
-        permLevel: 0
-}
- 
-exports.help = {
-        name: 'pokemon',
-        description: 'Belirtilen Pokemon hakkında bilgi verir.',
-        usage: 'pokemon [pokemon ismi/pokemon id numarası]'
-}
+
+module.exports = Pokemon;
