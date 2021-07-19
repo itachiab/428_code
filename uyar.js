@@ -1,100 +1,40 @@
-const { Command } = require('discord.js-commando');
 const Discord = require('discord.js');
+exports.run = (client, message, args) => {
 
-module.exports = class ModerationWarnCommand extends Command {
-	constructor(client) {
-		super(client, {
-			name: 'uyar',
-			aliases: ['uyarı', 'sunucuda uyar', 'uyarıat', 'uyarı ver'],
-			group: 'moderasyon',
-			memberName: 'uyar',
-			description: 'İstediğiniz kişiye uyarı verir.',
-			guildOnly: true,
-			throttling: {
-				usages: 2,
-				duration: 3
-			},
+  if (!message.guild) {
+  const ozelmesajuyari = new Discord.RichEmbed()
+  .setColor(0xFF0000)
+  .setTimestamp()
+  .setAuthor(message.author.username, message.author.avatarURL)
+  .addField(':warning: **Uyarı** :warning:', '`uyar` **adlı komutu özel mesajlarda kullanamazsın.**')
+  return message.author.sendEmbed(ozelmesajuyari); }
+  let guild = message.guild
+  let reason = args.slice(1).join(' ');
+  let user = message.mentions.users.first();
+  let modlog = guild.channels.find('name', 'mod-log');
+  if (!modlog) return message.reply('`mod-log` kanalını bulamıyorum.');
+  if (reason.length < 1) return message.reply('**Uyarı Sebebini Belirtmedin!**');
+  if (message.mentions.users.size < 1) return message.reply('**Kimi Uyaracağını Yazmadın!**').catch(console.error);
+  const embed = new Discord.RichEmbed()
+  .setColor(0x00AE86)
+  .setTimestamp()
+  .addField('Eylem:', 'Uyarı verme')
+  .addField('Kullanıcı:', `${user.username}#${user.discriminator}`)
+  .addField('Yetkili:', `${message.author.username}#${message.author.discriminator}`)
+  .addField('Sebep', reason);
+  return guild.channels.get(modlog.id).sendEmbed(embed);
 
-			args: [
-				{
-					key: 'member',
-					label: 'kullanıcı',
-					prompt: 'Kimi uyarmak istersin?',
-					type: 'member'
-				},
-				{
-					key: 'sebep',
-					label: 'sebep',
-					prompt: 'Neden bu kişiyi uyarmak istiyorsun?',
-					type: 'string'
-				}
-			]
-		});
-	}
+};
 
-	hasPermission(msg) {
-		return this.client.isOwner(msg.author) || msg.member.hasPermission("KICK_MEMBERS")
-	}
+exports.conf = {
+  enabled: true,
+  guildOnly: true,
+  aliases: [],
+  permLevel: 2
+};
 
-	async run(msg, args) {
-		let guild = msg.guild
-		const member = args.member;
-		const user = member.user;
-		const reason = args.sebep;
-		const kasa = this.client.provider.get(msg.guild.id, 'modKasa', []);
-		const eskikasano = Number(kasa);
-		const kasano = parseInt(eskikasano) + 1;
-		this.client.provider.set(msg.guild.id, 'modKasa', kasano);
-		const vt = this.client.provider.get(msg.guild.id, 'modLog', []);
-		const db = this.client.provider.get(msg.guild.id, 'modLogK', []);
-		if (db ==! "evet") return msg.channel.send(client.config.customEmojis.basarisiz + ' Lütfen `mod-log-ayarla` komutu ile mod-log kanalı belirleyiniz.');
-		let modlog = vt;
-		if (!modlog) return msg.channel.send(client.config.customEmojis.basarisiz + ' Mod-log olarak belirlediğiniz kanal silinmiş, lütfen yeni  bir mod-log kanalı açıp `mod-log-ayarla` komutu ile mod-log olarak ayarlayınız.');
-		if (user.id === msg.author.id) return msg.say(client.config.customEmojis.basarisiz + ' Kendini uyaramazsın.')
-		if (member.highestRole.calculatedPosition > msg.member.highestRole.calculatedPosition - 1) {
-			return msg.say(client.config.customEmojis.basarisiz + ' Bu kişinin senin rollerinden/rolünden daha yüksek rolleri/rolü var.');
-		}
-		if (!msg.guild.member(user).kickable) return msg.channel.send(client.config.customEmojis.basarisiz + ' Bu kişiyi uyaramıyorum çünkü `benden daha yüksek bir role sahip` ya da `bana gerekli yetkileri vermedin`.');
-
-		let embed = {
-			color: 3447003,
-			author: {
-				name: `${msg.author.tag} (${msg.author.id})`,
-				icon_url: msg.author.avatarURL
-			},
-			fields: [
-				{
-					name: "❯ Eylem:",
-					value: "Uyarma",
-					inline: false
-				},
-				{
-					name: "❯ Kullanıcı:",
-					value: `${user.tag} (${user.id})`,
-					inline: false
-				},
-				{
-					name: "❯ Yetkili:",
-					value: `${msg.author.tag} (${msg.author.id})`,
-					inline: false
-				},
-				{
-					name: "❯ Sebep:",
-					value: reason,
-					inline: false
-				}
-			],
-			timestamp: new Date(),
-			footer: {
-				text: `Sohbet ve Oyun | Kasa: ${kasano}`,
-				icon_url: this.client.user.avatarURL
-			},
-			thumbnail: {
-				url: user.avatarURL
-			},
-		};
-		guild.channels.get(modlog).send({embed});
-		member.send('**' + msg.guild.name + '** sunucusunda `' + msg.author.tag + '` adlı kişi/yetkili tarafından ___' + reason + '___ sebebi ile uyarıldın.')
-		return msg.channel.send(client.config.customEmojis.basarili + ' İşlem başarılı!');
-	}
+exports.help = {
+  name: 'uyar',
+  description: 'İstediğiniz kişiyi uyarır.',
+  usage: 'uyar [kullanıcı] [sebep]'
 };

@@ -1,103 +1,47 @@
-const { Command } = require('discord.js-commando');
 const Discord = require('discord.js');
+const fs = require('fs');
 
-module.exports = class ModerationKickCommand extends Command {
-	constructor(client) {
-		super(client, {
-			name: 'kick',
-			aliases: ['at', 'sunucudan at', 'kickle', 'kickhammer'],
-			group: 'moderasyon',
-			memberName: 'kick',
-			description: 'İstediğiniz kişiyi sunucudan atar.',
-			details: ``,
-			guildOnly: true,
-			throttling: {
-				usages: 2,
-				duration: 3
-			},
+exports.run = (client, message, args) => {
 
-			args: [
-				{
-					key: 'member',
-					label: 'kullanıcı',
-					prompt: 'Kimi sunucudan atmak istersin?',
-					type: 'member'
-				},
-				{
-					key: 'sebep',
-					label: 'sebep',
-					prompt: 'Neden bu kişiyi sunucudan atmak istiyorsun?',
-					type: 'string'
-				}
-			]
-		});
-	}
+  if (!message.member.hasPermission("KICK_MEMBERS")) return message.reply(`Bu komutu kullanabilmek için **Üyeleri At** iznine sahip olmalısın!`);
+  
+  let user = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
+  let reason = args.slice(1).join(' ');
+  let modLog = JSON.parse(fs.readFileSync("./jsonlar/mLog.json", "utf8"));
+  let modlog = message.guild.channels.get(modLog[message.guild.id].ml);
+  if(!modLog[message.guild.id]) return message.reply('Lütfen **r?mod-log-ayarla** yazarak Moderasyon Kayıtları kanalı ayarlayınız!');
+  if (message.mentions.users.size < 1) return message.reply('Atacağın kişiyi etiketlemelisin! \n**Örnek:** r?kick <@kişi-etiket>');
+  if (reason.length < 1) return message.reply('Atma sebebini yazmadın! \n**Örnek:** r?kick <@kişi-etiket> <sebep>');
+  if (user.id === message.author.id) return message.reply('Kendini atamazsın!');
+  
+  const embed = new Discord.RichEmbed()
+  .setColor("RANDOM")
+  .addField('Yapılan İşlem', 'Atma/Kick')
+  .addField('Atılan Kullanıcı', `${user.username}#${user.discriminator} (${user.id})`)
+  .addField('Atan Yetkili', `${message.author.username}#${message.author.discriminator}`)
+  .addField('Atılma Sebebi', "```" + reason + "```")
+  modlog.send(embed);
+  
+  if (!message.guild.member(user).kickable) return message.reply('Yetkilileri atamam!');
+  message.guild.member(user).kick();
+  
+  const embed2 = new Discord.RichEmbed()
+  .setColor("RANDOM")
+  .setDescription(`<@${user.id}> adlı kullanıcı başarıyla atıldı!`)
+  message.channel.send(embed2)
+  
+};
 
-	hasPermission(msg) {
-		return this.client.isOwner(msg.author) || msg.member.hasPermission("KICK_MEMBERS")
-	}
+exports.conf = {
+  enabled: true,
+  guildOnly: true,
+  aliases: ["at"],
+  permLevel: `Üyeleri at yetkisine sahip olmak gerekir.`
+};
 
-	async run(msg, args) {
-		let guild = msg.guild
-		const member = args.member;
-		const user = member.user;
-		const reason = args.sebep;
-		const kasa = this.client.provider.get(msg.guild.id, 'modKasa', []);
-		const eskikasano = Number(kasa);
-		const kasano = parseInt(eskikasano) + 1;
-		this.client.provider.set(msg.guild.id, 'modKasa', kasano);
-		const vt = this.client.provider.get(msg.guild.id, 'modLog', []);
-		const db = this.client.provider.get(msg.guild.id, 'modLogK', []);
-		if (db ==! "evet") return msg.channel.send(client.config.customEmojis.basarisiz + ' Lütfen `mod-log-ayarla` komutu ile mod-log kanalı belirleyiniz.');
-		let modlog = vt;
-		if (!modlog) return msg.channel.send(client.config.customEmojis.basarisiz + ' Mod-log olarak belirlediğiniz kanal silinmiş, lütfen yeni  bir mod-log kanalı açıp `mod-log-ayarla` komutu ile mod-log olarak ayarlayınız.');
-		if (user.id === msg.author.id) return msg.say(client.config.customEmojis.basarisiz + ' Kendini atamazsın.')
-		if (member.highestRole.calculatedPosition > msg.member.highestRole.calculatedPosition - 1) {
-			return msg.say(client.config.customEmojis.basarisiz + ' Bu kişinin senin rollerinden/rolünden daha yüksek rolleri/rolü var.');
-		}
-
-		if (!msg.guild.member(user).kickable) return msg.channel.send(client.config.customEmojis.basarisiz + ' Bu kişiyi sunucudan atamıyorum çünkü `benden daha yüksek bir role sahip` ya da `bana gerekli yetkileri vermedin`.');
-
-		msg.guild.member(user).kick();
-		let embed = {
-			color: 3447003,
-			author: {
-				name: `${msg.author.tag} (${msg.author.id})`,
-				icon_url: msg.author.avatarURL
-			},
-			fields: [
-				{
-					name: "❯ Eylem:",
-					value: "Sunucudan atma",
-					inline: false
-				},
-				{
-					name: "❯ Kullanıcı:",
-					value: `${user.tag} (${user.id})`,
-					inline: false
-				},
-				{
-					name: "❯ Yetkili:",
-					value: `${msg.author.tag} (${msg.author.id})`,
-					inline: false
-				},
-				{
-					name: "❯ Sebep:",
-					value: reason,
-					inline: false
-				}
-			],
-			timestamp: new Date(),
-			footer: {
-				text: `Sohbet ve Oyun | Kasa: ${kasano}`,
-				icon_url: this.client.user.avatarURL
-			},
-			thumbnail: {
-				url: user.avatarURL
-			},
-		};
-		guild.channels.get(modlog).send({embed});
-		member.send('**' + msg.guild.name + '** sunucusunda `' + msg.author.tag + '` adlı kişi/yetkili tarafından ___' + reason + '___ sebebi ile atıldın.');
-		return msg.channel.send(client.config.customEmojis.basarili + ' İşlem başarılı!');
-	}
+exports.help = {
+  name: 'kick',
+  category: 'moderasyon',
+  description: 'İstediğiniz kişiyi sunucudan atar.',
+  usage: 'r?kick <@kişi-etiket> <sebep>'
 };

@@ -1,45 +1,63 @@
-const { Command } = require('discord.js-commando');
+const Discord = require('discord.js')
+const fs = require('fs');
+var ayarlar = require('../ayarlar.json');
+let kanal = JSON.parse(fs.readFileSync("././jsonlar/mLog.json", "utf8"));
 
-module.exports = class BlacklistUserCommand extends Command {
-	constructor(client) {
-		super(client, {
-			name: 'mod-log-ayarla',
-			aliases: ['modlogayarla', 'modlog', 'mod-log'],
-			group: 'ayarlar',
-			memberName: 'mod-log-ayarla',
-			description: 'Mod-log kanalını değiştirmenizi sağlar.',
-			guildOnly: true,
-			throttling: {
-				usages: 1,
-				duration: 10
-			},
+exports.run = async (client, message, args) => {
+if (!message.member.hasPermission("ADMINISTRATOR")) return message.reply(`Bu komutu kullanabilmek için **Yönetici** iznine sahip olmalısın!`);
+  
+  let channel = message.mentions.channels.first()
+  
+    if (!channel) {
+        const embed = new Discord.RichEmbed()
+        .setColor("RANDOM")
+	      .setTitle(`» Yanlış Kullanım!`)
+	      .addField(`Doğru Kullanım`, `${ayarlar.prefix}mod-log-ayarla <#kanal>`)
+        message.channel.send({embed})
+        return
+    }
 
-			args: [
-				{
-					key: 'channel',
-					prompt: 'mod-log kanalı hangi kanal olsun? (#kanalismi şeklinde yazınız)\n',
-					type: 'channel'
-				}
-			]
-		});
-	}
+    if(!kanal[message.guild.id]){
+        kanal[message.guild.id] = {
+            modlog: channel.id
+        };
+    }
+  
+    fs.writeFile("././jsonlar/mLog.json", JSON.stringify(kanal), (err) => {
+        console.log(err)
+    })
+  
+    const embed = new Discord.RichEmbed()
+    .setDescription(`» Moderasyon Kayıtları kanalı başarıyla ${channel} olarak ayarlandı!`)
+    .setColor("RANDOM")
+    message.channel.send({embed})
+  
+  let embed2 = new Discord.RichEmbed()
+  .setColor("RANDOM")
+  .addField('Kanal "ayarlar" komutuna kaydediliyor...', "_Bu işlem tahminen en fazla 5 saniye sürebilir ve işlem bitene kadar komutlar kullanılamayabilir._")
+  await message.channel.send(embed2);
+  
+  console.log("Kaydediliyor...");
 
-	hasPermission(msg) {
-		return this.client.isOwner(msg.author) || msg.member.hasPermission("ADMINISTRATOR")
-	}
+  // you can always leave out this code // (cmd part)
+  client.commands.forEach( async cmd => {
+    await client.unloadCommand(cmd);
+  }); // end of cmd function
 
-	async run(msg, args) {
-		var ch = await args.channel;
-		if (ch.type == 'voice') return msg.reply('Sesli kanallar seçilemez!');
-			const vt = this.client.provider.get(msg.guild.id, 'modLog', []);
-			const db = this.client.provider.get(msg.guild.id, 'modLogK', []);
-			if (vt === args.channel.id) {
-				this.client.provider.set(msg.guild.id, 'modLogK', true);
-				msg.channel.send(`${client.config.customEmojis.basarisiz} Mod-log kanalı zaten **${args.channel.name}** olarak ayarlı.`);
-			} else {
-				this.client.provider.set(msg.guild.id, 'modLog', args.channel.id);
-				this.client.provider.set(msg.guild.id, 'modLogK', true);
-				return msg.channel.send(`${client.config.customEmojis.basarili} Mod-log olarak ayarlanan kanal: **${args.channel.name}**`);
-			}
-	}
-};
+  // shut down the bot
+  process.exit(1);
+}
+    
+exports.conf = {
+    enabled: true,
+    guildOnly: false,
+    aliases: ['mod-log-belirle'],
+    permLevel: `Yönetici izni gerekiyor.`
+}
+
+exports.help = {
+    name: 'mod-log-ayarla',
+    category: 'ayarlar',
+    description: 'Moderasyon kayıtları kanalını ayarlar.',
+    usage: 'r?mod-log-ayarla <#kanal>'
+}

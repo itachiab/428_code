@@ -1,61 +1,75 @@
-const commando = require('discord.js-commando');
+const
+    rps = [
+        'makas',
+        'taş',
+        'kağıt'
+    ],
+    rpsF = (userAns, botAns) => {
+        let choice = userAns,
+            botChoice = botAns;
+        if (choice === 'taş') {
+            if (botChoice === 'makas') {
+                return 'won';
+            } else if (botChoice === 'kağıt') {
+                return 'Kaybetin';
+            }
 
-module.exports = class EchoCommand extends commando.Command {
-    constructor(client) {
-        super(client, {
-            name: 'taş-kağıt-makas',
-            aliases: ['taş', 'tas', 'kağıt', 'kagıt', 'kagit', 'kağit', 'makas', 'tkm', 'taskagitmakas', 'taskagıtmakas', 'taskağıtmakas', 'tas-kagıt-makas'],
-            group: 'eglence',
-            memberName: 'taş-kağıt-makas',
-            description: 'Taş kağıt makas oynar.',
-            guildOnly: false,
-            throttling: {
-                 usages: 2,
-                 duration: 3
-             }
-        });
+            return 'draw';
+        } else if (choice === 'kağıt') {
+            if (botChoice === 'taş') {
+                return 'lost';
+            } else if (botChoice === 'makas') {
+                return 'Kazandın';
+            }
+
+            return 'draw';
+        } else if (choice === 'makas') {
+            if (botChoice === 'taş') {
+                return 'lost';
+            } else if (botChoice === 'kağıt') {
+                return 'Kazandın';
+            }
+
+            return 'draw';
+        }
+    };
+
+exports.run = async (client, msg, args) => {
+    if (!args[0]) {
+        return msg.channel.send('Lütfen seçimini yap taş, kağıt yada makas & dve!tkm <taş,kağıt,makas>');
+    }
+    let choice = args[0].toLowerCase();
+    choice = choice === 't' ? 'taş' : choice;
+    choice = choice === 'k' ? 'kağıt' : choice;
+    choice = choice === 'm' ? 'makas' : choice;
+    if (!rps.includes(choice)) {
+        return msg.channel.send('Lütfen seçimini yap taş, kağıt yada makas & dve!tkm <t,k,m>');
+    }
+    let rand = Math.floor(Math.random() * 3);
+    let botChoice = rps[rand];
+    let result = rpsF(choice, botChoice);
+    let answer = '';
+
+    if (result === 'won') {
+        answer = ':trophy: Başarılı, sen **Kazandın** :trophy: \nSenin Seçtiği: `' + choice + '` | Bot\'s Seçtiği: `' + botChoice + '`';
+    } else if (result === 'lost') {
+        answer = ':x: Bidakine **Kaybetin Dostum** :x: \nSenin Seçtiğin: `' + choice + '` | Bot\'s Seçtiği: `' + botChoice + '`';
+    } else if (result === 'draw') {
+        answer = ':neutral_face: It\'s a **Berabere** :neutral_face:\nSenin Seçimin: `' + choice + '` | Bot\'s Seçimi: `' + botChoice + '`';
     }
 
-    //<:makas:383865913583206400> <:tas:383865914086522890> <:kagit:383865913696583686>
-
-    async run(msg) {
-        function get_random(list) {
-            return list[Math.floor((Math.random() * list.length))];
-        };
-            //<:tas:383865914086522890> <:kagit:383865913696583686> <:makas:383865913583206400>
-        var yazitura = ["T-K-M **|** Sonuç: **<:tas:383865914086522890> (TAŞ)** ","T-K-M **|** Sonuç: **<:kagit:383865913696583686>** (KAĞIT)","T-K-M **|** Sonuç: **<:makas:383865913583206400>** (MAKAS)"] ;
-        var sonuc = get_random(yazitura);
-        msg.channel.send('3.. 2.. 1..').then(msg => {
-            setTimeout(() => {
-                msg.edit("<:tas:383865914086522890>")
-            }, 1000);
-            setTimeout(() => {
-                msg.edit("<:kagit:383865913696583686>")
-            }, 2000);
-            setTimeout(() => {
-                msg.edit("<:makas:383865913583206400>")
-            }, 3000);
-            setTimeout(() => {
-                msg.edit("<:tas:383865914086522890>")
-            }, 4000);
-            setTimeout(() => {
-                msg.edit("<:kagit:383865913696583686>")
-            }, 5000);
-            setTimeout(() => {
-                msg.edit("<:makas:383865913583206400>")
-            }, 6000);
-            setTimeout(() => {
-                msg.edit("<:tas:383865914086522890>")
-            }, 7000);
-            setTimeout(() => {
-                msg.edit("<:kagit:383865913696583686>")
-            }, 8000);
-            setTimeout(() => {
-                msg.edit("<:makas:383865913583206400>")
-            }, 9000);
-            setTimeout(() => {
-                msg.edit(sonuc)
-            }, 10000);
-        });
-    };
+    msg.channel.send(answer);
 };
+
+exports.conf = {
+  enabled: true,
+  guildOnly: false,
+  aliases: [],
+  permLevel: 0
+ };
+ 
+ exports.help = {
+ name: 'tkm',
+ description: 'Taş kağıt makas oyununu oynar.',
+ usage: 'zuptkm'
+ }

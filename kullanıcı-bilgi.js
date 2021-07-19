@@ -1,245 +1,83 @@
-const stripIndents = require('common-tags').stripIndents;
-const commando = require('discord.js-commando');
 const Discord = require('discord.js');
+const client = new Discord.Client();
+const moment = require('moment');
+var ayarlar = require('../ayarlar.json');
 
-module.exports = class UserInfoCommand extends commando.Command {
-	constructor(client) {
-		super(client, {
-			name: 'kullanıcı-bilgi',
-			aliases: ['kullanıcı', 'kullanıcı bilgim', 'kbilgim'],
-			group: 'bilgi',
-			memberName: 'kullanıcı-bilgi',
-			description: 'İstediğiniz bir kişi hakkında bilgi verir.',
-			examples: ['kullanıcı-bilgi @A Black Monday / Serhan / [13]#7171 ', 'kullanıcı-bilgi A Black Monday / Serhan / [13]'],
-			guildOnly: true,
-
-			args: [
-				{
-					key: 'member',
-					label: 'kullanıcı',
-					prompt: 'Kimin hakkında bilgi almak istersin?',
-					type: 'member',
-					default: ''
-				}
-			]
-		});
-	}
-
-	async run(msg, args) {
-		if (args.member === "") {
-			const member = msg.member;
-			const user = member.user;
-			const statusOfAFK = this.client.provider.get(user.id, 'afkStatus', []);
-			const guildOfAFK = this.client.provider.get(user.id, 'afkGuild', []);
-			const reasonOfAFK = this.client.provider.get(user.id, 'afkReason', []);
-			const Durum = user.presence.status;
-			const Durm = (Durum == "online" ? (0x00AE86) : (Durum == "offline" ? (0x808080) : (Durum == "idle" ? (0xFFFF00) : (Durum == "dnd" ? (0xFF0000) : (0x00AE86)))))
-			const durm = (Durum == "online" ? ("Çevrimiçi") : (Durum == "offline" ? ("Çevrimdışı") : (Durum == "idle" ? ("Boşta") : (Durum == "dnd" ? ("Rahatsız Etmeyin") : ("Bilinmiyor/bulunamadı.")))))
-			
-			if (statusOfAFK === true) {
-				if (guildOfAFK === msg.guild.id) {
-					var embed = {
-						color: Durm,
-						author: {
-							name: user.username,
-							icon_url: user.avatarURL,
-						},
-						fields: [
-							{
-								name: '❯ Ad ve ID',
-								value: `${user.tag}, ${user.id}`,
-								inline: false
-							},
-							{
-								name: '❯ Kayıt tarihi',
-								value: `${user.createdAt}`,
-								inline: false
-							},
-							{
-								name: '❯ Durumu',
-								value: `${durm} - AFK`,
-								inline: false
-							},
-							{
-								name: '❯ AFK nedeni',
-								value: `${reasonOfAFK}`,
-								inline: false
-							},
-							{
-								name: '❯ Şu an oynadığı oyun',
-								value: `${user.presence.game ? user.presence.game.name : 'Belirtilmemiş'}`,
-								inline: false
-							},
-							{
-								name: '❯ Bot mu?',
-								value: `${user.bot ? '\n Evet' : 'Hayır'}`,
-								inline: false
-							},
-							{
-								name: '❯ Rolleri',
-								value: `${member.roles.map(roles => `\`${roles.name}\``).join(' ')}`,
-								inline: false
-							},
-						],
-						thumbnail: {
-							url: user.avatarURL
-						}
-					};
-					return msg.channel.send({embed});
-				}
-			}
+exports.run = async (client, message, args) => {
+	let user;
 	
-			var embed = {
-				color: Durm,
-				author: {
-					name: user.username,
-					icon_url: user.avatarURL,
-				},
-				fields: [
-					{
-						name: '❯ Ad ve ID',
-						value: `${user.tag}, ${user.id}`,
-						inline: false
-					},
-					{
-						name: '❯ Kayıt tarihi',
-						value: `${user.createdAt}`,
-						inline: false
-					},
-					{
-						name: '❯ Durumu',
-						value: `${durm}`,
-						inline: false
-					},
-					{
-						name: '❯ Şu an oynadığı oyun',
-						value: `${user.presence.game ? user.presence.game.name : 'Belirtilmemiş'}`,
-						inline: false
-					},
-					{
-						name: '❯ Bot mu?',
-						value: `${user.bot ? '\n Evet' : 'Hayır'}`,
-						inline: false
-					},
-					{
-						name: '❯ Rolleri',
-						value: `${member.roles.map(roles => `\`${roles.name}\``).join(' ')}`,
-						inline: false
-					},
-				],
-				thumbnail: {
-					url: user.avatarURL
-				}
-			};
-			return msg.channel.send({embed});			
-		}
+    if (message.mentions.users.first()) {
+      user = message.guild.member(message.mentions.users.first() || message.guild.members.get(args[0]));
+    } else {
+        user = message.author;
+    }
+	
+  const Durum = user.presence.status;
+			const Durm = (Durum == "online" ? (0x00AE86) : (Durum == "offline" ? (0x808080) : (Durum == "idle" ? (0xFFFF00) : (Durum == "dnd" ? (0xFF0000) : (0x00AE86)))))
+			const durm = (Durum == "online" ? (client.emojis.get('466955711910248458') + "Çevrimiçi") : (Durum == "offline" ? (client.emojis.get('466955726145847326') + "Çevrimdışı") : (Durum == "idle" ? (client.emojis.get('466955712887783424') + "Boşta") : (Durum == "dnd" ? (client.emojis.get('466955726674460673') + "Rahatsız Etmeyin") : ("Bilinmiyor/bulunamadı.")))))
 
-
-
-		const member = args.member;
-		const user = member.user;
-		const statusOfAFK = this.client.provider.get(user.id, 'afkStatus', []);
-		const guildOfAFK = this.client.provider.get(user.id, 'afkGuild', []);
-		const reasonOfAFK = this.client.provider.get(user.id, 'afkReason', []);
-		const Durum = user.presence.status;
-		const Durm = (Durum == "online" ? (0x00AE86) : (Durum == "offline" ? (0x808080) : (Durum == "idle" ? (0xFFFF00) : (Durum == "dnd" ? (0xFF0000) : (0x00AE86)))))
-		const durm = (Durum == "online" ? ("Çevrimiçi") : (Durum == "offline" ? ("Çevrimdışı") : (Durum == "idle" ? ("Boşta") : (Durum == "dnd" ? ("Rahatsız Etmeyin") : ("Bilinmiyor/bulunamadı.")))))
-		
-		if (statusOfAFK === true) {
-			if (guildOfAFK === msg.guild.id) {
-				var embed = {
-					color: Durm,
-					author: {
-						name: user.username,
-						icon_url: user.avatarURL,
-					},
-					fields: [
-						{
-							name: '❯ Ad ve ID',
-							value: `${user.tag}, ${user.id}`,
-							inline: false
-						},
-						{
-							name: '❯ Kayıt tarihi',
-							value: `${user.createdAt}`,
-							inline: false
-						},
-						{
-							name: '❯ Durumu',
-							value: `${durm} - AFK`,
-							inline: false
-						},
-						{
-							name: '❯ AFK nedeni',
-							value: `${reasonOfAFK}`,
-							inline: false
-						},
-						{
-							name: '❯ Şu an oynadığı oyun',
-							value: `${user.presence.game ? user.presence.game.name : 'Belirtilmemiş'}`,
-							inline: false
-						},
-						{
-							name: '❯ Bot mu?',
-							value: `${user.bot ? '\n Evet' : 'Hayır'}`,
-							inline: false
-						},
-						{
-							name: '❯ Rolleri',
-							value: `${member.roles.map(roles => `\`${roles.name}\``).join(' ')}`,
-							inline: false
-						},
-					],
-					thumbnail: {
-						url: user.avatarURL
-					}
-				};
-				return msg.channel.send({embed});
+			var tarih = ''
+			if(moment(user.createdAt).format('MM') === '01') {
+				var tarih = `${moment(user.createdAt).format('DD')} Ocak ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
 			}
-		}
-
-		var embed = {
-			color: Durm,
-			author: {
-				name: user.username,
-				icon_url: user.avatarURL,
-			},
-			fields: [
-				{
-					name: '❯ Ad ve ID',
-					value: `${user.tag}, ${user.id}`,
-					inline: false
-				},
-				{
-					name: '❯ Kayıt tarihi',
-					value: `${user.createdAt}`,
-					inline: false
-				},
-				{
-					name: '❯ Durumu',
-					value: `${durm}`,
-					inline: false
-				},
-				{
-					name: '❯ Şu an oynadığı oyun',
-					value: `${user.presence.game ? user.presence.game.name : 'Belirtilmemiş'}`,
-					inline: false
-				},
-				{
-					name: '❯ Bot mu?',
-					value: `${user.bot ? '\n Evet' : 'Hayır'}`,
-					inline: false
-				},
-				{
-					name: '❯ Rolleri',
-					value: `${member.roles.map(roles => `\`${roles.name}\``).join(' ')}`,
-					inline: false
-				},
-			],
-			thumbnail: {
-				url: user.avatarURL
+			if(moment(user.createdAt).format('MM') === '02') {
+				var tarih = `${moment(user.createdAt).format('DD')} Şubat ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
 			}
-		};
-		msg.channel.send({embed});
-	}
+			if(moment(user.createdAt).format('MM') === '03') {
+				var tarih = `${moment(user.createdAt).format('DD')} Mart ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '04') {
+				var tarih = `${moment(user.createdAt).format('DD')} Nisan ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '05') {
+				var tarih = `${moment(user.createdAt).format('DD')} Mayıs ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '06') {
+				var tarih = `${moment(user.createdAt).format('DD')} Haziran ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '07') {
+				var tarih = `${moment(user.createdAt).format('DD')} Temmuz ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '08') {
+				var tarih = `${moment(user.createdAt).format('DD')} Ağustos ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '09') {
+				var tarih = `${moment(user.createdAt).format('DD')} Eylül ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '10') {
+				var tarih = `${moment(user.createdAt).format('DD')} Ekim ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '11') {
+				var tarih = `${moment(user.createdAt).format('DD')} Kasım ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+			if(moment(user.createdAt).format('MM') === '12') {
+				var tarih = `${moment(user.createdAt).format('DD')} Aralık ${moment(user.createdAt).format('YYYY HH:mm:ss')} `
+			}
+  
+    const member = message.guild.member(user);
+    const embed = new Discord.RichEmbed()
+		.setColor('RANDOM')
+		.setThumbnail(user.avatarURL)
+		.addField("» Tag:", `${user.tag}`)
+		.addField("» ID:", `${user.id}`)
+		.addField("» Sunucudaki Kullanıcı Adı:", `${member.nickname !== null ? `${member.nickname}` : 'Sunucuda kullanıcı adı bulunmuyor.'}`)
+		.addField("» Hesap Kuruluş Tarihi:", `${tarih}`)
+		.addField("» Bot mu?:", `${user.bot ? "Evet." : "Hayır."}`)
+		.addField("» Durum:", `${durm}`)
+		.addField("» Şuanda Oynadığı Oyun:", `${user.presence.game ? user.presence.game.name : 'Şuanda hiç bir oyun oynamıyor.'}`)
+		.addField("» Rolleri:", `${member.roles.filter(r => r.name !== "@everyone").map(r => r).join(' **|** ') ? member.roles.filter(r => r.name !== "@everyone").map(r => r).join(' **|** ') : 'Bu kullanıcının bu sunucuda hiç rolü bulunmuyor.'}`)
+     message.channel.send({embed});
+    }
+exports.conf = {
+  enabled: true,
+  guildOnly: false,
+  aliases: ['kullanıcı'],
+  permLevel: `Yetki gerekmiyor.`
+};
+
+exports.help = {
+  name: 'kullanıcı-bilgi',
+  category: "kullanıcı",
+  description: 'İstediğiniz kullanıcı hakkında veya komutu kullanan kullanıcı hakkında bilgi verir.',
+  usage: 'r?kullanıcı-bilgi veya r?kullanıcı-bilgi <@kişi-etiket>'
 };

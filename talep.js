@@ -19,15 +19,13 @@ exports.run = (client, message, args) => {
 
         const embed = new Discord.RichEmbed()
         .setTitle(`» Hey ${message.author.username} !`)
-        .setAuthor("» Dinle Ve Eğlen | Destek Sistemi")
-        .setDescription("**Buradaki destek ekibimiz sizinle ilgilenecektir.\nDestek talebini iptal etmek için [dve!kapat](https://discord.gg/U2byS7x) yazabilirsin!**")
-        .setFooter('Dinle ve Eğlen | Destek Sistemi', client.user.avatarURL)
+        .setAuthor("» Thaypon | Destek Sistemi")
+        .setDescription("**Buradaki destek ekibimiz sizinle ilgilenecektir.\nDestek talebini iptal etmek için [d!kapat](dclınk) yazabilirsin!**")
+        .setFooter('Destek Sistemi', client.user.avatarURL)
         .setTimestamp()
         ch.send(embed).catch()
-        ch.send("@everyone")
-        ch.send("@here")
         ch.awaitMessages((msg)=> {
-            if (msg.content === "dve!kapat") {
+            if (msg.content === "d!kapat") {
                 ch.send("`Talebiniz iptal ediliyor!`").then(()=>{
                     setTimeout(()=> {
                         ch.delete().catch()
@@ -48,5 +46,5 @@ exports.conf = {
 exports.help = {
   name: 'talep',
   description: 'Destek talebi açar.',
-  usage: 'dve!talep'
+  usage: 'talep'
 };

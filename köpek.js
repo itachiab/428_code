@@ -1,36 +1,19 @@
-const commando = require('discord.js-commando');
-const snekfetch = require('snekfetch');
+const { RichEmbed } = require('discord.js');
+const superagent = require('superagent');
 
-module.exports = class DogCommand extends commando.Command {
-    constructor(client) {
-        super(client, {
-            name: 'köpek',
-            aliases: ['random-dog', 'köpekpng', 'köpekjpg', '🐶'],
-            group: 'eglence',
-            memberName: 'köpek',
-            description: 'Rastgele bir 🐶 resmi gönderir.',
-            guildOnly: false,
-            throttling: {
-                 usages: 1,
-                 duration: 5
-            }
-        });
-    }
 
-    async run(msg, args) {
-		try {
-			const { body } = await snekfetch
-				.get('https://random.dog/woof.json');
-                let embed = {
-                    color: 3447003,
-                    description: `🐶`,
-                    image: {
-                        url: body.url,
-                    }
-                  };
-                  return msg.channel.send({embed});
-		} catch (err) {
-			return msg.say(`${client.config.customEmojis.basarisiz} Opss bir hata var galiba! \`${err.message}\`. Lütfen daha sonra tekrar dene!`);
-		}
-    };
-};
+module.exports.run = async (bot, message, args) => {
+
+  let {body} = await superagent
+  .get("https://random.dog/woof.json"); 
+  
+   let dogembed = new RichEmbed()
+    .setDescription('Hav Hav 🐶')
+    .setColor('#ff6a00')
+    .setImage(body.url)
+   
+   message.channel.send(dogembed)
+}
+module.exports.help = {
+  name:"köpek"
+}
